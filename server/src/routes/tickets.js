@@ -1,7 +1,7 @@
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
-const { generateTicketCode, generateNonce, signTicketPayload } = require('../services/cryptoService');
+const { generateTicketCode, generateNonce, signTicketPayload, hashPassword } = require('../services/cryptoService');
 const { generateQrDataUrl } = require('../services/qrService');
 const { sendTicketEmail, sendCancellationRefundEmail, sendAttendeeCancellationEmail } = require('../services/emailService');
 const { getEventStats } = require('../services/statsService');
@@ -234,14 +234,27 @@ router.post('/register', async (req, res) => {
 
     const normalizedEmail = attendee_email.trim().toLowerCase();
 
-    // Enforce attendee database presence: user MUST be registered in our database to book passes!
-    const attendeeInDb = db.prepare('SELECT id, name, email FROM attendees WHERE email = ?').get(normalizedEmail);
+    // Check if attendee exists in attendees database table; if not, automatically create an attendee profile!
+    let attendeeInDb = db.prepare('SELECT id, name, email FROM attendees WHERE email = ?').get(normalizedEmail);
     if (!attendeeInDb) {
-      return res.status(401).json({
-        success: false,
-        error: 'Attendee account not found in our database. You must create an account or log in before registering for events.',
-        requireAccount: true,
-      });
+      const newAttendeeId = 'att_' + uuidv4().replace(/-/g, '').slice(0, 12);
+      const defaultPassword = 'Pass_' + Math.random().toString(36).slice(-8);
+      const passwordHash = hashPassword(defaultPassword);
+
+      db.prepare(`
+        INSERT INTO attendees (id, name, email, password_hash, phone, organization, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', datetime('now'))
+      `).run(
+        newAttendeeId,
+        attendee_name.trim(),
+        normalizedEmail,
+        passwordHash,
+        attendee_phone ? attendee_phone.trim() : '',
+        organization ? organization.trim() : ''
+      );
+
+      attendeeInDb = { id: newAttendeeId, name: attendee_name.trim(), email: normalizedEmail };
+      console.log(`[Tickets] Auto-created attendee profile for guest booking: "${attendee_name.trim()}" <${normalizedEmail}>`);
     }
 
     // Prevent duplicate active registration for the same attendee on the same event

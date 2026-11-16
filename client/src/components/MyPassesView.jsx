@@ -852,9 +852,11 @@ export default function MyPassesView({
           ticket={cancellationTarget.ticket}
           event={cancellationTarget.event}
           currency={cancellationTarget.ticket?.currency || cancellationTarget.event?.currency || 'INR'}
-          onClose={() => setCancellationTarget(null)}
-          onCancelled={() => {
+          onClose={() => {
             setCancellationTarget(null);
+            fetchPasses(activeEmail);
+          }}
+          onCancelled={() => {
             fetchPasses(activeEmail);
           }}
         />

@@ -1125,7 +1125,7 @@ export default function RegistrationModal({ event, onClose, onSuccess, onOpenPas
               borderRadius: '10px',
               background: '#f8fafc',
               border: '1px solid #e2e8f0',
-              marginBottom: '20px',
+              marginBottom: '16px',
               fontSize: '11px',
               color: '#475569',
             }}>
@@ -1134,6 +1134,25 @@ export default function RegistrationModal({ event, onClose, onSuccess, onOpenPas
                 <strong>100% Refund Guarantee:</strong> If this event is rescheduled or cancelled by the organizer, your payment of {formatCurrency(tierPrice, eventCurrency)} will be immediately refunded back to your account.
               </span>
             </div>
+
+            {/* Inline Payment/Booking Error Alert */}
+            {error && (
+              <div style={{
+                padding: '12px 14px',
+                borderRadius: '10px',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#b91c1c',
+                fontSize: '12.5px',
+                marginBottom: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}>
+                <AlertCircle size={16} color="#dc2626" style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
