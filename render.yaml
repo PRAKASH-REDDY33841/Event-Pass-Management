@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: eventpass-engine
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ORGANIZER_KEY
+        value: eventpass2026
+
